@@ -22,20 +22,20 @@ For each type of model, a model was first trained and fitted with default parame
 
 ## Results
 
-### Here are examples of how to embed images from your sub-folder
+### Random Forest Confusion Matrix
+![confusionmatrix](https://raw.githubusercontent.com/AnyOldRandomNameWillDOo/Module-3-Final-Project/master/Visuals/ConfustionMatrixRandomForest.png)
+> Confusion matrix results of the random forest model using SMOTE data
 
+### Water Well Status By Location
+![location](https://raw.githubusercontent.com/AnyOldRandomNameWillDOo/Module-3-Final-Project/master/Visuals/WaterWellStatusByLocation.png)
+> The location of the water well is a high predictor of functional status.
 
-#### Visual 1
-![graph1](./images/visual1.png)
-> Sentence about visualization.
-
-#### Visual 2
-![graph2](./images/visual2.png)
-> Sentence about visualization.
 
 ## Recommendations:
 
-- It is difficult to say what is the "best" model because there is a trade-off with the models having higher accuracy versus the ability to predict the needs repair class. Many of the more complicated models were not any better than simpler models in accuracy or at predicting the wells that need repair. The SMOTE version of random forest and the SMOTE version of extra trees seem like the best middle ground for accuracy, computational simplicity, and having any hope of predicting the needs repair class. These models were very similar in their scores and the important features. They also were the models that categorized the non functional wells as being functional the least.
+-  It is difficult to say what is the "best" model because there is a trade-off with the models having higher accuracy versus the ability to predict the needs repair class. Many of the more complicated models were not any better than simpler models in accuracy or at predicting the wells that need repair. The SMOTE version of random forest seems like the best middle ground for accuracy, computational simplicity, and having any hope of predicting the needs repair class. It was also the model that categorized the non functional wells as being functional the least.
+
+- There is a dramatic difference in the construction year and the functional status of the well with older wells being more likely to be non functional or need repair. With further analysis an ideal time frame of when to service wells could be found that would balance cost and prevention.
 
 - The features that were added of distance to the nearest city and servicing water lab came up often as important features so they should be added to the data collection process of the wells.
 
