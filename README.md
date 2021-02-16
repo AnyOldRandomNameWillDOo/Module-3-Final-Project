@@ -1,11 +1,19 @@
 # Predicting Functional Status Of Water Wells In Tanzania
-## Using machine learning models to identify wells that are non functional or need repair
 
 **Author**: Vivienne DiFrancesco
 
 The contents of this repository detail an analysis of classification of Tanzanian water wells as either functional, non functional, or needs repair. This analysis is detailed in hopes of making the work accessible and replicable.
 
-## Business problem:
+## Repository Structure
+
+- README.md: The top level README for reviewers of this project
+- main_notebook.ipynb: narritive documentation of analysis in jupyter notebook
+- TanzaniaWaterWellsSlides.pdf: pdf version of project presentation slides
+- Data folder: Contains datasets used in this project
+
+![MainImage](https://raw.githubusercontent.com/HeyThatsViv/Functional-Status-of-Water-Wells/master/Visuals/MainImage.jpg)
+
+## Business problem
 
 The purpose of this project is to use machine learning classification models to predict the functional status of water wells in Tanzania. The different status groups for classification are functional, non functional, and functional but needs repair. The hope is that by predicting the functional status of a well, access to water could be improved across Tanzania.
 
@@ -31,7 +39,7 @@ For each type of model, a model was first trained and fitted with default parame
 > The location of the water well is a high predictor of functional status.
 
 
-## Recommendations:
+## Recommendations
 
 - It is difficult to say what is the "best" model because there is a trade-off with the models having higher accuracy versus the ability to predict the needs repair class. Many of the more complicated models were not any better than simpler models in accuracy or at predicting the wells that need repair. The SMOTE version of random forest seems like the best middle ground for accuracy, computational simplicity, and having any hope of predicting the needs repair class. It was also the model that categorized the non functional wells as being functional the least.
 
@@ -56,14 +64,5 @@ For each type of model, a model was first trained and fitted with default parame
 - More feature engineering - More research could possibly bring up more features to add to the dataset like were found with the servicing water labs. Or if there was some manipulating of certain features in the dataset to bring out more meaningful features.
 
 
-## For further information
-Please review the narrative of the analysis in [the main notebook](./main_notebook.ipynb) or review the [presentation slides](./TanzaniaWaterWellsSlides.pdf)
 
-## Repository Structure:
-
-- README.md: The top level README for reviewers of this project
-- main_notebook.ipynb: narritive documentation of analysis in jupyter notebook
-- TanzaniaWaterWellsSlides.pdf: pdf version of project presentation slides
-- Visuals folder: Contains main visuals for the project
-- Data folder: Contains datasets used in this project
 
