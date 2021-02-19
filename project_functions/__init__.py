@@ -11,6 +11,259 @@ from scipy.spatial import distance
 import sklearn.metrics as metrics
 from yellowbrick.classifier import ROCAUC
 
+def fix_lat(x, df):
+    '''
+    Fill the zero latitude values in the data with the average latitude of
+    other wells that are in the same area. Ignores entries that are not zero.
+    This function must be run before longitude as it depends on the longitude
+    values being zero to fill the latitude appropriately.
+    
+    Args:
+        x (row): Datapoint of a dataframe
+        df (dataframe): Dataframe that the function is referencing from
+    
+    Returns:
+        Mean latitude: Average latitude value for non-zero valued wells in the
+            same area as input datapoint
+    Example: 
+        df['latitude'] = df.apply(fix_lat, axis=1, args=([X_train]))
+    '''
+    
+    # Leaves the latitude the same if latitude value is not zero    
+    if x['longitude'] != 0: 
+        lat = x['latitude']
+        return lat 
+    
+    # Drill down to look for entries from the same region and lga(if possible)
+    # Find the mean of the similar entries, not including those that are zero
+    else:
+        lga = x['lga']
+        region = x['region']
+        tempdf = df[(df['lga'] == lga) & (df['longitude'] !=0)]
+        
+        if tempdf.shape[0] != 0:
+            lat_mean = tempdf['latitude'].mean()
+            
+        # Find similar entries by region if lga can't be matched            
+        else:
+            tempdf = df[(df['region'] == region) & 
+                             (df['longitude'] !=0)]
+            lat_mean = tempdf['latitude'].mean()
+            
+        return lat_mean
+
+def fix_long(x, df):
+    '''
+    Fill the zero longitude values in the data with the average longitude of
+    other wells that are in the same area. Ignores entries that are not zero.
+    
+    Args:
+        x (row): Datapoint of a dataframe
+        df (dataframe): Dataframe that the function is referencing from
+    
+    Returns:
+        Mean longitude: Average longitude value for non-zero valued wells in 
+            the same area as input datapoint
+    Example: 
+        df['longitude'] = df.apply(fix_long, axis=1, args=([X_train]))
+    '''
+    
+    # Leaves the longitude the same if longitude value is not zero
+    if x['longitude'] != 0:
+        long = x['longitude']
+        return long
+    
+    # Drill down to look for entries from the same region and lga(if possible)
+    # Find the mean of the similar entries, not including those that are zero    
+    else:
+        lga = x['lga']
+        region = x['region']
+        tempdf = df[(df['lga'] == lga) & (df['longitude'] !=0)]
+        
+        if tempdf.shape[0] != 0:
+            long_mean = tempdf['longitude'].mean()
+        
+        # Find similar entries by region if lga can't be matched
+        else:
+            tempdf = df[(df['region'] == region) & 
+                             (df['longitude'] !=0)]
+            long_mean = tempdf['longitude'].mean()
+            
+        return long_mean
+
+def servicing_lab(x, dict_list):
+    '''
+    Find the assigned servicing water lab for each entry in the dataframe
+    
+    Args:
+        x (row): Datapoint of the dataframe
+        dict_list (list of dictionaries): dictionary entry for each laboratory 
+        
+    Returns:
+        Servicing water lab assigned to the well according to location
+    
+    Example:
+        df['water_lab'] = df.apply(servicing_lab, axis=1, args=([labs_dict_list]))
+    '''
+    
+    reg = x['region']
+    lga = x['lga']
+    lab_list = []
+    lga_lookup = ['Kilimanjaro', 'Manyara', 'Geita', 'Njombe', 'Tabora', 
+                  'Simiyu']
+    
+    # Looking through the list of water lab dictionaries for the appropriate lab
+    for dic in dict_list:
+        
+        # Matching by lga when appropriate
+        if reg in lga_lookup:
+            if lga in dic['LGA'].split(', '):
+                lab = dic['CITY OF LABORATORY'] 
+                lab_list.append(str(lab))
+                
+        # Matching by region when appropriate
+        else:
+            if dic['SERVICED REGIONS'] == reg:
+                lab = dic['CITY OF LABORATORY']
+                lab_list.append(lab)
+    
+    return lab_list[0]
+
+
+def distance_servicing_lab(x, dict_list):
+    '''
+    Find the euclidean distance to the water lab for each entry in the 
+    dataframe using latitude and longitude entries
+    
+    Args:
+        x (row): Datapoint of the dataframe
+        dict_list (list of dictionaries): dictionary entry for each laboratory
+        
+    Returns:
+        Servicing water lab distance based on euclidean distance
+    
+    Example:
+        df['lab_distance'] = df.apply(distance_servicing_lab, axis=1, args=([labs_dict_list]))
+    '''
+    
+    lab = x['servicing_water_lab']
+    A = [x['latitude'], x['longitude']]
+
+    # Find the distance between the lab and the well using latitude and 
+    # longitude
+    for dic in dict_list:
+        if lab == dic['CITY OF LABORATORY']:
+            B = [float(dic['LATITUDE']), float(dic['LONGITUDE'])]
+            dist = distance.euclidean(A, B)
+            return dist
+
+
+def closest_city(x, dict_list):
+    '''
+    Find the closest city to a well based on euclidean distance.
+    
+    Args:
+        x (row): Datapoint of a dataframe
+        dict_list (list of dictionaries): dictionary entry for latitude and longitude of biggest Tanzanian cities
+        
+    Returns:
+        Closest city: Closest city to the well as a string
+        
+    Example:
+        df['city'] = df.apply(closest_city, axis=1, args=([cities_dict_list]))
+    '''
+
+    A = [x['latitude'], x['longitude']]
+    distance = 10000 # Variable to be overwritten
+    city = '' # Variable to be overwritten
+    
+    # Looping through each city to calculate the distance
+    for dic in dict_list:
+        B = [float(dic['LATITUDE']), float(dic['LONGITUDE'])]
+        B = np.array(B)
+        dist = np.linalg.norm(A - B)
+        
+        # Replacing the city value if current one is closer
+        if dist < distance:
+            distance = dist
+            city = dic['CITY']
+            
+    return city
+
+
+def city_distance(x, dict_list):
+    '''
+    Find the euclidean distance between a well and the closest city.
+    
+    Args:
+        x (row): Datapoint of a dataframe
+        dict_list (list of dictionaries): dictionary entry for latitude and longitude of biggest Tanzanian cities
+        
+    Returns:
+        Distance: Euclidean distance between well and closest city
+        
+    Example:
+        df['distance'] = df.apply(city_distance, axis=1, args=([cities_dict_list]))
+    '''
+    
+    city = x['closest_city']
+    A = [x['latitude'], x['longitude']]
+
+    # Using the latitude and longitude of the city and the well to get distance
+    for dic in dict_list:
+        if city == dic['CITY']:
+            B = [float(dic['LATITUDE']), float(dic['LONGITUDE'])]
+            dist = distance.euclidean(A, B)
+            return dist    
+
+
+def funder_assignment(x, fund_list):
+    '''
+    Buckets the funder values that are not in the list of most common funders 
+    into an 'other' category.
+    
+    Args:
+        x (str): funder string value in dataframe
+        fund_list (list): list of most common funders in the training set
+        
+    Returns:
+        Changes the value to 'other' if x is not in the list of most common
+        funders. Otherwise leaves x unchanged.
+        
+    Example:
+        df['funder'] = df['funder'].apply(funder_assignment, args=([fund_list]))
+    '''
+    
+    if x not in fund_list:
+        x = 'other'
+    else:
+        pass
+    return x
+
+
+def installer_assignment(x, install_list):
+    '''
+    Buckets the installer values that are not in the list of most common 
+    installers into an 'other' category.
+    
+    Args:
+        x (str): installer string value in dataframe
+        install_list (list): list of most common funders in the training set
+        
+    Returns:
+        Changes the value to 'other' if x is not in the list of most common
+        installers. Otherwise leaves x unchanged.
+        
+    Example:
+        df['installer'] = df['installer'].apply(installer_assignment, args=([install_list]))
+    '''
+    if x not in install_list:
+        x = 'other'
+    else:
+        pass
+    return x
+
+
 def plotting_counts(df, col, target='status_group'):
     '''
     Generates countplot on a column in a dataframe.
